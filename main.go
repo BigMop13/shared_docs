@@ -9,6 +9,12 @@ import (
 	"time"
 )
 
+//reads a data from file
+//goroutine to read values from channel
+//goroutine to write values to file
+
+const dataDir = "."
+
 type User struct {
 	Username string
 	Email    string
@@ -16,31 +22,25 @@ type User struct {
 }
 
 type Document struct {
-	ID       string
-	Title    string
-	Content  string
-	Owner    string
-	Editors  []string
+	Name     string
 	Created  time.Time
 	Modified time.Time
 }
 
 type SharedDocsSystem struct {
 	users     map[string]*User
-	documents map[string]*Document
+	documents Document
 	dataDir   string
 }
 
 func NewSharedDocsSystem() *SharedDocsSystem {
-	dataDir := "./data"
-	os.MkdirAll(dataDir, 0755)
-	os.MkdirAll(filepath.Join(dataDir, "users"), 0755)
-	os.MkdirAll(filepath.Join(dataDir, "documents"), 0755)
 
 	return &SharedDocsSystem{
-		users:     make(map[string]*User),
-		documents: make(map[string]*Document),
-		dataDir:   dataDir,
+		users: make(map[string]*User),
+		documents: Document{
+			ID: "document.txt",
+		},
+		dataDir: dataDir,
 	}
 }
 
@@ -53,11 +53,12 @@ func main() {
 	fmt.Println()
 
 	for {
-		fmt.Println("Main Menu:")
-		fmt.Println("1. Create User")
-		fmt.Println("2. Login")
-		fmt.Println("3. List Users")
-		fmt.Println("4. Exit")
+		//fmt.Println("Main Menu:")
+		//fmt.Println("1. Create User")
+		//fmt.Println("2. Login")
+		//fmt.Println("3. List Users")
+		//fmt.Println("4. Exit")
+		fmt.Println("1. Edit file")
 		fmt.Print("Choose an option: ")
 
 		choice, _ := reader.ReadString('\n')
@@ -66,13 +67,6 @@ func main() {
 		switch choice {
 		case "1":
 			system.createUser(reader)
-		case "2":
-			system.login(reader)
-		case "3":
-			system.listUsers()
-		case "4":
-			fmt.Println("Goodbye!")
-			return
 		default:
 			fmt.Println("Invalid option. Please try again.")
 		}
