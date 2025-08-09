@@ -1,72 +1,32 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
-	"reinder/handlers"
-	"reinder/models"
-	"strings"
-	"time"
+
+	"reinder/internal/httpserver"
+	"reinder/internal/realtime"
 )
 
-//reads a data from file
-//goroutine to read values from channel
-//goroutine to write values to file
-
-const dataDir = "."
-
-type User struct {
-	Username string
-	Email    string
-	Created  time.Time
-}
-
-type Document struct {
-	Name     string
-	Created  time.Time
-	Modified time.Time
-}
-
-type SharedDocsSystem struct {
-	users     map[string]*User
-	documents Document
-	dataDir   string
-}
-
-func NewSharedDocsSystem() *SharedDocsSystem {
-	return &SharedDocsSystem{
-		users: make(map[string]*User),
-		documents: Document{
-			Name: "document.txt",
-		},
-		dataDir: dataDir,
-	}
-}
-
 func main() {
-	reader := bufio.NewReader(os.Stdin)
+	hub := realtime.NewHub()
+	go hub.Run()
 
-	fmt.Println("=== Welcome to Shared Docs System ===")
-	fmt.Println("A simplified collaborative document editing system")
-	fmt.Println()
+	http.HandleFunc("/", httpserver.ServeHome)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		realtime.ServeWs(hub, w, r)
+	})
 
-	//fmt.Println("Main Menu:")
-	//fmt.Println("1. Create User")
-	//fmt.Println("2. Login")
-	//fmt.Println("3. List Users")
-	//fmt.Println("4. Exit")
-	fmt.Println("1. Edit file")
-	fmt.Print("Choose an option: ")
-
-	choice, _ := reader.ReadString('\n')
-	choice = strings.TrimSpace(choice)
-	documentHandler := handlers.NewDocumentHandler()
-	switch choice {
-	case "1":
-		documentHandler.EditFile(models.NewDocument("document.txt"))
-	default:
-		fmt.Println("Invalid option. Please try again.")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
 	}
-	fmt.Println()
+
+	fmt.Printf("🚀 Starting Shared Docs server on port %s\n", port)
+	fmt.Printf("📱 Open your browser and navigate to: http://localhost:%s\n", port)
+	fmt.Println("💡 Multiple users can connect simultaneously for real-time collaboration")
+
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
