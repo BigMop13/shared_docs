@@ -2,32 +2,31 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
-)
+	"os"
 
-var (
-	channelId = 123
+	"reinder/internal/httpserver"
+	"reinder/internal/realtime"
 )
 
 func main() {
-	http.HandleFunc("/", sendRequest)
+	hub := realtime.NewHub()
+	go hub.Run()
 
-	err := http.ListenAndServe(":8080", nil)
-	fmt.Println("Server is running on port 8080")
+	http.HandleFunc("/", httpserver.ServeHome)
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		realtime.ServeWs(hub, w, r)
+	})
 
-	if err != nil {
-		panic(err)
-	}
-}
-
-func sendRequest(w http.ResponseWriter, r *http.Request) {
-	resp, err := http.Get("test")
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusNotFound)
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
 	}
 
-	defer resp.Body.Close()
+	fmt.Printf("🚀 Starting Shared Docs server on port %s\n", port)
+	fmt.Printf("📱 Open your browser and navigate to: http://localhost:%s\n", port)
+	fmt.Println("💡 Multiple users can connect simultaneously for real-time collaboration")
 
-	fmt.Println("Response Status", resp.Status)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
