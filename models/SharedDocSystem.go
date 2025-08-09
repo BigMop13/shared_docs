@@ -9,10 +9,9 @@ type SharedDocsSystem struct {
 func NewSharedDocsSystem(users map[string]*User) *SharedDocsSystem {
 
 	return &SharedDocsSystem{
-		users: make(map[string]*User),
+		users: users,
 		documents: Document{
-			ID: "document.txt",
+			Name: "document.txt",
 		},
-		dataDir: dataDir,
 	}
 }

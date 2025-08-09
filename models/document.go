@@ -7,3 +7,9 @@ type Document struct {
 	Created  time.Time
 	Modified time.Time
 }
+
+func NewDocument(name string) Document {
+	return Document{
+		Name: name,
+	}
+}
